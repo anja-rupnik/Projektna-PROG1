@@ -1,74 +1,72 @@
 open Definicije
-open Avtomat
+open Avtomat_cel
+(* open Avtomat *)
+
 
 type stanje_vmesnika =
   | SeznamMoznosti
   | IzpisAvtomata
-  | BranjeNiza
-  | RezultatPrebranegaNiza
+  | VstaviGrid
+  | NaslednjiGrid
+  | RezultatGrid
   | OpozoriloONapacnemNizu
 
+
 type model = {
-  avtomat : t;
-  stanje_avtomata : Stanje.t;
+  avtomat : Avtomat_cel.t;
+  (* stanje_avtomata : Stanje.t; *)
   stanje_vmesnika : stanje_vmesnika;
 }
 
-type msg = PreberiNiz of string | ZamenjajVmesnik of stanje_vmesnika
+type msg = PreberiGrid of string | ZamenjajVmesnik of stanje_vmesnika | PosodobiGrid
 
-let preberi_niz avtomat q niz =
-  let aux acc znak =
-    match acc with
-    | None -> None
-    | Some q -> Avtomat.prehodna_funkcija avtomat q znak
-  in
-  niz |> String.to_seq |> Seq.fold_left aux (Some q)
+let preberi_grid avtomat grid =
+  (*grid str -> grid array -> z prehodno fun = posodobljen avtomat*)
+  Avtomat_cel.nov_grid avtomat (grid |> String.to_seq |> Seq.map Stanje.iz_char |> Array.of_seq)
 
-let update model = function
-  | PreberiNiz str -> (
-      match preberi_niz model.avtomat model.stanje_avtomata str with
-      | None -> { model with stanje_vmesnika = OpozoriloONapacnemNizu }
-      | Some stanje_avtomata ->
-          {
-            model with
-            stanje_avtomata;
-            stanje_vmesnika = RezultatPrebranegaNiza;
-          })
+
+
+(* ¨ni še *)
+  let update model = function
+  | PreberiGrid grid ->
+          (* pejt v naslednja *)
+          let avtomat = preberi_grid (model.avtomat) grid in
+          { avtomat;
+            stanje_vmesnika = NaslednjiGrid;}
+  | PosodobiGrid -> {avtomat = Avtomat_cel.prehodna_funkcija model.avtomat;
+                    stanje_vmesnika = RezultatGrid}
   | ZamenjajVmesnik stanje_vmesnika -> { model with stanje_vmesnika }
 
 let rec izpisi_moznosti () =
   print_endline "1) izpiši avtomat";
-  print_endline "2) preberi niz";
+  print_endline "2) vstavi grid";
+  print_endline "3) nadaljuj z istim gridom";
   print_string "> ";
   match read_line () with
   | "1" -> ZamenjajVmesnik IzpisAvtomata
-  | "2" -> ZamenjajVmesnik BranjeNiza
+  | "2" -> ZamenjajVmesnik VstaviGrid
+  | "3" -> ZamenjajVmesnik NaslednjiGrid
   | _ ->
-      print_endline "** VNESI 1 ALI 2 **";
+      print_endline "** VNESI 1, 2 ALI 3**";
       izpisi_moznosti ()
 
 let izpisi_avtomat avtomat =
   let izpisi_stanje stanje =
-    let prikaz = Stanje.v_niz stanje in
-    let prikaz =
-      if stanje = zacetno_stanje avtomat then "-> " ^ prikaz else prikaz
-    in
-    let prikaz =
-      if je_sprejemno_stanje avtomat stanje then prikaz ^ " +" else prikaz
+    let prikaz = (Stanje.v_char stanje |> Char.escaped )
     in
     print_endline prikaz
   in
   List.iter izpisi_stanje (seznam_stanj avtomat)
 
-let beri_niz _model =
-  print_string "Vnesi niz > ";
-  let str = read_line () in
-  PreberiNiz str
+let beri_grid _model =
+  print_string "Vnesi grid > ";
+  let grid = read_line () in
+  PreberiGrid grid
+
 
 let izpisi_rezultat model =
-  if je_sprejemno_stanje model.avtomat model.stanje_avtomata then
-    print_endline "Niz je bil sprejet"
-  else print_endline "Niz ni bil sprejet"
+  print_endline (Array.to_seq (Avtomat_cel.grid model.avtomat) |> Seq.map Stanje.v_char |> String.of_seq )
+
 
 let view model =
   match model.stanje_vmesnika with
@@ -76,8 +74,9 @@ let view model =
   | IzpisAvtomata ->
       izpisi_avtomat model.avtomat;
       ZamenjajVmesnik SeznamMoznosti
-  | BranjeNiza -> beri_niz model
-  | RezultatPrebranegaNiza ->
+  | VstaviGrid -> beri_grid model
+  | NaslednjiGrid -> PosodobiGrid
+  | RezultatGrid ->
       izpisi_rezultat model;
       ZamenjajVmesnik SeznamMoznosti
   | OpozoriloONapacnemNizu ->
@@ -87,7 +86,7 @@ let view model =
 let init avtomat =
   {
     avtomat;
-    stanje_avtomata = zacetno_stanje avtomat;
+    (* stanje_avtomata = zacetno_stanje avtomat; *)
     stanje_vmesnika = SeznamMoznosti;
   }
 
@@ -96,4 +95,5 @@ let rec loop model =
   let model' = update model msg in
   loop model'
 
-let _ = loop (init enke_1mod3)
+let _ = loop (init Avtomat_cel.conway)
+

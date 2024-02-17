@@ -1,4 +1,5 @@
-type t = { oznaka : string }
+type t = { oznak : char }
 
-let iz_niza oznaka = { oznaka }
-let v_niz { oznaka } = oznaka
+let iz_char oznak = { oznak }
+let v_char { oznak } = oznak
+

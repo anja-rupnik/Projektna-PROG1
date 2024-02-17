@@ -1,4 +1,5 @@
 type t
 
-val iz_niza : string -> t
-val v_niz : t -> string
+
+val iz_char : char -> t
+val v_char : t -> char
