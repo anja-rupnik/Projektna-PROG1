@@ -1,6 +1,5 @@
 open Definicije
-open Avtomat_cel
-(* open Avtomat *)
+(* open Avtomat_cel *)
 
 
 type stanje_vmesnika =
@@ -14,22 +13,16 @@ type stanje_vmesnika =
 
 type model = {
   avtomat : Avtomat_cel.t;
-  (* stanje_avtomata : Stanje.t; *)
   stanje_vmesnika : stanje_vmesnika;
 }
 
 type msg = PreberiGrid of string | ZamenjajVmesnik of stanje_vmesnika | PosodobiGrid
 
 let preberi_grid avtomat grid =
-  (*grid str -> grid array -> z prehodno fun = posodobljen avtomat*)
   Avtomat_cel.nov_grid avtomat (grid |> String.to_seq |> Seq.map Stanje.iz_char |> Array.of_seq)
 
-
-
-(* ¨ni še *)
   let update model = function
   | PreberiGrid grid ->
-          (* pejt v naslednja *)
           let avtomat = preberi_grid (model.avtomat) grid in
           { avtomat;
             stanje_vmesnika = NaslednjiGrid;}
@@ -56,13 +49,12 @@ let izpisi_avtomat avtomat =
     in
     print_endline prikaz
   in
-  List.iter izpisi_stanje (seznam_stanj avtomat)
+  List.iter izpisi_stanje (Avtomat_cel.seznam_stanj avtomat)
 
 let beri_grid _model =
-  print_string "Vnesi grid > ";
+  print_endline "Vnesi grid > ";
   let grid = read_line () in
   PreberiGrid grid
-
 
 let izpisi_rezultat model =
   print_endline (Array.to_seq (Avtomat_cel.grid model.avtomat) |> Seq.map Stanje.v_char |> String.of_seq )
@@ -86,7 +78,6 @@ let view model =
 let init avtomat =
   {
     avtomat;
-    (* stanje_avtomata = zacetno_stanje avtomat; *)
     stanje_vmesnika = SeznamMoznosti;
   }
 
@@ -95,5 +86,6 @@ let rec loop model =
   let model' = update model msg in
   loop model'
 
-let _ = loop (init Avtomat_cel.conway)
+let _ = loop (init (Avtomat_cel.elementaren1d "01101110"))
 
+(* Tukaj se lahko namesto 01101110 za poljubno pravilo vpiše število pravila v binarnem zapisu na osmih mestih. *)
