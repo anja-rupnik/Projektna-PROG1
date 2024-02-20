@@ -4,7 +4,6 @@ open Definicije
 type stanje_vmesnika =
   | SeznamMoznosti
   | IzpisAvtomata
-  (* | DolociOkolico *)
   | VstaviDim
   | VstaviVrstico
   | NaslednjiGrid
@@ -20,7 +19,6 @@ type model = {
 type msg = PreberiVrstico of string * int | DimenzijeGrida of int * int | ZamenjajVmesnik of stanje_vmesnika | PosodobiGrid
 
 let preberi_vrstico avtomat vrstica i =
-  (*grid str -> grid array -> z prehodno fun = posodobljen avtomat*)
   Avtomat_cel_ot.nova_vrstica avtomat (vrstica |> String.to_seq |> Seq.map Stanje.iz_char |> Array.of_seq) i
 
 
@@ -82,10 +80,6 @@ let izpisi_rezultat _model =
     print_endline (Array.to_seq (Avtomat_cel_ot.grid _model.avtomat).(i) |> Seq.map Stanje.v_char |> String.of_seq )
   done
 
-(* let doloci_ok _model =
-  print_endline "Vnesi funkcijo za okolico. Naj bo oblike (x0, y0, x, y) -> bool >";
-  let f = read_line() in
-   *)
 
 let view model =
   match model.stanje_vmesnika with
@@ -93,7 +87,6 @@ let view model =
   | IzpisAvtomata ->
       izpisi_avtomat model.avtomat;
       ZamenjajVmesnik SeznamMoznosti
-  (* | DolociOkolico -> doloci_ok model *)
   | VstaviDim -> beri_dim model
   | VstaviVrstico -> beri_vrstico model
   | NaslednjiGrid -> PosodobiGrid
@@ -107,7 +100,6 @@ let view model =
 let init avtomat =
   {
     avtomat;
-    (* stanje_avtomata = zacetno_stanje avtomat; *)
     stanje_vmesnika = SeznamMoznosti;
     st_vrstic_ze = 0
   }
@@ -117,5 +109,5 @@ let rec loop model =
   let model' = update model msg in
   loop model'
 
-(* let _ = loop (init Avtomat_cel_ot.elementaren1d) *)
+let _ = loop (init Avtomat_cel_ot.conway)
 

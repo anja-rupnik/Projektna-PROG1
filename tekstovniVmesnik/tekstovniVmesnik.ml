@@ -1,5 +1,5 @@
 open Definicije
-(* open Avtomat_cel *)
+(* open Avtomat_cel_el *)
 
 
 type stanje_vmesnika =
@@ -12,21 +12,21 @@ type stanje_vmesnika =
 
 
 type model = {
-  avtomat : Avtomat_cel.t;
+  avtomat : Avtomat_cel_el.t;
   stanje_vmesnika : stanje_vmesnika;
 }
 
 type msg = PreberiGrid of string | ZamenjajVmesnik of stanje_vmesnika | PosodobiGrid
 
 let preberi_grid avtomat grid =
-  Avtomat_cel.nov_grid avtomat (grid |> String.to_seq |> Seq.map Stanje.iz_char |> Array.of_seq)
+  Avtomat_cel_el.nov_grid avtomat (grid |> String.to_seq |> Seq.map Stanje.iz_char |> Array.of_seq)
 
   let update model = function
   | PreberiGrid grid ->
           let avtomat = preberi_grid (model.avtomat) grid in
           { avtomat;
             stanje_vmesnika = NaslednjiGrid;}
-  | PosodobiGrid -> {avtomat = Avtomat_cel.prehodna_funkcija model.avtomat;
+  | PosodobiGrid -> {avtomat = Avtomat_cel_el.prehodna_funkcija model.avtomat;
                     stanje_vmesnika = RezultatGrid}
   | ZamenjajVmesnik stanje_vmesnika -> { model with stanje_vmesnika }
 
@@ -49,7 +49,7 @@ let izpisi_avtomat avtomat =
     in
     print_endline prikaz
   in
-  List.iter izpisi_stanje (Avtomat_cel.seznam_stanj avtomat)
+  List.iter izpisi_stanje (Avtomat_cel_el.seznam_stanj avtomat)
 
 let beri_grid _model =
   print_endline "Vnesi grid > ";
@@ -57,7 +57,7 @@ let beri_grid _model =
   PreberiGrid grid
 
 let izpisi_rezultat model =
-  print_endline (Array.to_seq (Avtomat_cel.grid model.avtomat) |> Seq.map Stanje.v_char |> String.of_seq )
+  print_endline (Array.to_seq (Avtomat_cel_el.grid model.avtomat) |> Seq.map Stanje.v_char |> String.of_seq )
 
 
 let view model =
@@ -86,6 +86,6 @@ let rec loop model =
   let model' = update model msg in
   loop model'
 
-let _ = loop (init (Avtomat_cel.elementaren1d "01101110"))
+let _ = loop (init (Avtomat_cel_el.elementaren1d "01101110"))
 
 (* Tukaj se lahko namesto 01101110 za poljubno pravilo vpiše število pravila v binarnem zapisu na osmih mestih. *)

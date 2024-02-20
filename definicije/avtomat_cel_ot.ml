@@ -1,13 +1,12 @@
 type stanje = Stanje.t
 
-(* maybe nared svojo *)
 type okolica = int
 
 type t = {
   stanja : stanje list;
   grid : stanje array array;
-  def_okolice : int*int*int*int -> bool;
-  prehodi : (okolica * stanje) list;
+  def_okolice : int*int*int*int*int*int -> bool;
+  prehodi : (okolica * stanje * stanje) list;
 }
 
 let ustvari_grid v s avtomat =
@@ -18,33 +17,46 @@ let nova_vrstica avtomat vrstica i =
 let nastavi_okolico avtomat f =
   {avtomat with def_okolice = f}
 
-let prazen_avtomat zac_el =
+let prazen_avtomat def_okolice =
   {
-    stanja = [zac_el];
+    stanja = [];
     grid = [|[||]|];
+    def_okolice = def_okolice;
     prehodi = [];
-    def_okolice = fun _ -> false
   }
 
 let dodaj_nesprejemno_stanje stanje avtomat =
   { avtomat with stanja = stanje :: avtomat.stanja }
 
-let dodaj_prehod okolica stanje avtomat =
-  { avtomat with prehodi = (okolica, stanje) :: avtomat.prehodi }
+let dodaj_prehod okolica stanjeZ stanjeK avtomat =
+  { avtomat with prehodi = (okolica, stanjeZ, stanjeK) :: avtomat.prehodi }
 
-(* popravi!!! *)
+(*pri meni List.find_index ne dela, ker imam preslabo verzijo zato imamo to funkcijo ročno narejeno*)
+let index list el =
+  let rec aux list i =
+    match list with
+    | x :: _ when x = el -> i
+    | _ :: xs -> aux xs i+1
+    | [] -> failwith "tega el ni v listu"
+  in
+  aux list 0
+
 let prehodna_funkcija avtomat =
   let v,s = Array.length avtomat.grid, Array.length avtomat.grid.(0) in
-  (* (okolica -> string(okolica)) -> prehodi -> novo stanje *) 
   let okolica_od n m =
-    let vr_ok = ref 0. in
+    let vrednost_okolice = ref 0. in
       for i = 0 to v do
         for j = 0 to s do
-          if (avtomat.def_okolice (n,m,i,j)) = true 
-            then vr_ok :=  10.**(float_of_int (int_of_char (Stanje.v_char avtomat.grid.(i).(j)))) +. !vr_ok
+          if (avtomat.def_okolice (n,m,i,j,v,s)) = true 
+            then vrednost_okolice :=  10.**(float_of_int(index avtomat.stanja avtomat.grid.(i).(j) +1)) +. !vrednost_okolice
+          (* Vrednost okolice smo izracumali tako da natančno loči koliko celic posamezne vrste je v njej.
+            Vsakemu od možnih stanj celic odgovarja eno desetiško mesto v vrednosti_okolice,
+            desetiška mesta so napisana ravno v obratni smeri kot so v seznamu stanj (avtomat.stanja).
+            Problem nastane, če je okolica večja od 10. Potem se lahko 10 v izrazu zamenja s max številom celic v okolici.
+            Potem je vrednost_okolice treba pretvoriti iz desetiškega v tisti sistem, če želimo lažje prebrati, koliko celic v posameznem stanju imamo. *)
         done
       done;
-      int_of_float !vr_ok
+      int_of_float !vrednost_okolice
     in
   let vrni = Array.copy avtomat.grid
   in
@@ -52,11 +64,11 @@ let prehodna_funkcija avtomat =
     for j = 0 to s do
       match
       List.find_opt
-        (fun (okolica', _stanje) -> okolica' = (okolica_od i j))
+        (fun (okolica', stanjeZ, _stanje) -> okolica' = (okolica_od i j) && stanjeZ = avtomat.grid.(i).(j))
         avtomat.prehodi
       with
       | None -> ()
-      | Some (_, stanje) -> (vrni.(i).(j)<- stanje)
+      | Some (_, _, stanje) -> (vrni.(i).(j)<- stanje)
     done
   done;
   {avtomat with grid = vrni}
@@ -68,17 +80,37 @@ let grid avtomat = avtomat.grid
 let st_vrstic avtomat = Array.length avtomat.grid
 
 
-(* let elementaren1d =
+(* PRIMER FUNKCIJE ZA DEFINICIJO OKOLICE 
+   tale vrne zaprto okolico s polmerom r v metriki m. *)
+let metricna r m =
+  fun (x1, y1, x2, y2, _ , _) -> (float_of_int (abs x1-x2))**m +. (float_of_int (abs y1-y2))**m <= r**m
+   
+(* To, da podamo v in s - št vrstic in stolpcev funkciji za okolico,
+   tukaj potrebujemo saj lahko tako mrežo spremenimo v torus. *)
+let metricna_torus r m =
+  fun (x1, y1, x2, y2, v, s) -> 
+    (float_of_int (min (abs x1-x2) (abs v-x1+x2)))**m +. (float_of_int (min (abs y1-y2) (abs s-y1+y2)))**m <= r**m
+
+(* Še primer "obroča" v metriki m (zaprte okolice z r1 brez zaprte okolice z r0). *)
+let metricni_obroc_torus r0 r1 m =
+  fun (x1, y1, x2, y2, v, s) -> 
+    let d = (float_of_int (min (abs x1-x2) (abs v-x1+x2)))**m +. (float_of_int (min (abs y1-y2) (abs s-y1+y2)))**m in
+    d <= r1**m && r0**m < d
+
+(* Ena od najbolj osnovnih okolic - Moorova okolica, ki jo recimo uporablja eden
+   od najbolj znanih primerov celičnih avtomatov - Conway's game of life. *)
+let moore =
+  metricni_obroc_torus 0. 1. infinity
+
+let conway =
   let q0 = Stanje.iz_char '0'
   and q1 = Stanje.iz_char '1'
   in
-  prazen_avtomat q0 |> dodaj_nesprejemno_stanje q1
-  |> dodaj_prehod (q1, q1, q1) q0 |> dodaj_prehod (q1, q1, q0) q1 |> dodaj_prehod (q1, q0, q1) q1
-  |> dodaj_prehod (q1, q0, q0) q0 |> dodaj_prehod (q0, q1, q1) q1 |> dodaj_prehod (q0, q1, q0) q0
-  |> dodaj_prehod (q0, q0, q1) q0 |> dodaj_prehod (q0, q0, q0) q0 *)
+  prazen_avtomat moore |> dodaj_nesprejemno_stanje q1 |> dodaj_nesprejemno_stanje q0
+  |> dodaj_prehod 08 q0 q0 |> dodaj_prehod 17 q0 q0 |> dodaj_prehod 26 q0 q0
+  |> dodaj_prehod 35 q0 q1 |> dodaj_prehod 44 q0 q0 |> dodaj_prehod 53 q0 q0
+  |> dodaj_prehod 62 q0 q0 |> dodaj_prehod 71 q0 q0 |> dodaj_prehod 80 q0 q0
+  |> dodaj_prehod 08 q1 q0 |> dodaj_prehod 17 q1 q0 |> dodaj_prehod 26 q1 q1
+  |> dodaj_prehod 35 q1 q1 |> dodaj_prehod 44 q1 q0 |> dodaj_prehod 53 q1 q0
+  |> dodaj_prehod 62 q1 q0 |> dodaj_prehod 71 q1 q0 |> dodaj_prehod 80 q1 q0
 
-(* let preberi_niz avtomat q niz =
-  let aux acc znak =
-    match acc with None -> None | Some q -> prehodna_funkcija avtomat q znak
-  in
-  niz |> String.to_seq |> Seq.fold_left aux (Some q) *)
