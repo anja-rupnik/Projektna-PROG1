@@ -3,7 +3,6 @@ open Definicije
 
 type stanje_vmesnika =
   | SeznamMoznosti
-  | IzpisAvtomata
   | VstaviDim
   | VstaviVrstico
   | NaslednjiGrid
@@ -44,25 +43,16 @@ let update model = function
   | ZamenjajVmesnik stanje_vmesnika -> { model with stanje_vmesnika }
 
 let rec izpisi_moznosti () =
-  print_endline "1) izpiši avtomat";
-  print_endline "2) vstavi grid";
-  print_endline "3) nadaljuj z istim gridom";
+  print_endline "1) vstavi grid";
+  print_endline "2) nadaljuj z istim gridom";
   print_string "> ";
   match read_line () with
-  | "1" -> ZamenjajVmesnik IzpisAvtomata
-  | "2" -> ZamenjajVmesnik VstaviDim
-  | "3" -> ZamenjajVmesnik NaslednjiGrid
+  | "1" -> ZamenjajVmesnik VstaviDim
+  | "2" -> ZamenjajVmesnik NaslednjiGrid
   | _ ->
-      print_endline "** VNESI 1, 2 ALI 3**";
+      print_endline "** VNESI 1 ALI 2 **";
       izpisi_moznosti ()
 
-let izpisi_avtomat avtomat =
-  let izpisi_stanje stanje =
-    let prikaz = (Stanje.v_char stanje |> Char.escaped )
-    in
-    print_endline prikaz
-  in
-  List.iter izpisi_stanje (Avtomat_cel_ot.seznam_stanj avtomat)
 
 let beri_vrstico _model =
   print_string "Vnesi vrstico > ";
@@ -85,9 +75,6 @@ let izpisi_rezultat _model =
 let view model =
   match model.stanje_vmesnika with
   | SeznamMoznosti -> izpisi_moznosti ()
-  | IzpisAvtomata ->
-      izpisi_avtomat model.avtomat;
-      ZamenjajVmesnik SeznamMoznosti
   | VstaviDim -> beri_dim model
   | VstaviVrstico -> beri_vrstico model
   | NaslednjiGrid -> PosodobiGrid

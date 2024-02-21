@@ -63,17 +63,13 @@ let prehodna_funkcija avtomat =
   for i = 0 to v-1 do
     let vrst = Array.copy vrni.(i) in
     for j = 0 to s-1 do
-      print_int (okolica_od i j);
-      print_endline "to je bla okolica";
-      print_char (Stanje.v_char avtomat.grid.(i).(j));
-      print_endline "";
       match
       List.find_opt
         (fun (okolica', stanjeZ, _stanje) -> (okolica' = (okolica_od i j) && stanjeZ = avtomat.grid.(i).(j)))
         avtomat.prehodi
       with
       | None -> ()
-      | Some (_, _, stanje) -> (vrst.(j) <- stanje);print_char (Stanje.v_char vrni.(i).(j)); print_char (Stanje.v_char stanje);print_endline"";
+      | Some (_, _, stanje) -> (vrst.(j) <- stanje);
     done;
     (vrni.(i) <- vrst)
   done;
