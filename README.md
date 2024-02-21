@@ -6,7 +6,7 @@ Celični avtomat začne z nekim osnovnim poljem celic, nato pa se vse celice nae
 
 ## Matematična definicija
 
-Celični avtomat definiramo kot nabor $(\Sigma, F, \delta)$,
+Celični avtomat definiramo kot nabor $(Q, \Sigma, F, \delta)$,
 - $Q$- množica simbolov oz. abeceda možnih stanj točk
 - $\Sigma$ - polje celic, stanja celic ob času 0
 - $F$ - okolice točk
