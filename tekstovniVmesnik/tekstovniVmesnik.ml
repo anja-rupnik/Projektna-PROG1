@@ -86,6 +86,6 @@ let rec loop model =
   let model' = update model msg in
   loop model'
 
-let _ = loop (init (Avtomat_cel_el.elementaren1d "01101110"))
+(* let _ = loop (init (Avtomat_cel_el.elementaren1d "01101110")) *)
 
 (* Tukaj se lahko namesto 01101110 za poljubno pravilo vpiše število pravila v binarnem zapisu na osmih mestih. *)

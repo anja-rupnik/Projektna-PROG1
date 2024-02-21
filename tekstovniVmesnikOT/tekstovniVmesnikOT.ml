@@ -38,7 +38,8 @@ let update model = function
           else
             { model with
             stanje_vmesnika = NaslednjiGrid;}
-  | PosodobiGrid -> {model with avtomat = Avtomat_cel_ot.prehodna_funkcija model.avtomat;
+  | PosodobiGrid -> let avt = Avtomat_cel_ot.prehodna_funkcija model.avtomat in
+                    {model with avtomat = avt;
                     stanje_vmesnika = RezultatGrid}
   | ZamenjajVmesnik stanje_vmesnika -> { model with stanje_vmesnika }
 
@@ -76,7 +77,7 @@ let beri_dim _model =
   DimenzijeGrida (int_of_string v, int_of_string s)
 
 let izpisi_rezultat _model =
-  for i = 0 to Avtomat_cel_ot.st_vrstic _model.avtomat do
+  for i = 0 to (Avtomat_cel_ot.st_vrstic _model.avtomat)-1 do
     print_endline (Array.to_seq (Avtomat_cel_ot.grid _model.avtomat).(i) |> Seq.map Stanje.v_char |> String.of_seq )
   done
 

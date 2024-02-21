@@ -43,33 +43,39 @@ let index list el =
 
 let prehodna_funkcija avtomat =
   let v,s = Array.length avtomat.grid, Array.length avtomat.grid.(0) in
-  let okolica_od n m =
-    let vrednost_okolice = ref 0. in
-      for i = 0 to v do
-        for j = 0 to s do
-          if (avtomat.def_okolice (n,m,i,j,v,s)) = true 
-            then vrednost_okolice :=  10.**(float_of_int(index avtomat.stanja avtomat.grid.(i).(j) +1)) +. !vrednost_okolice
-          (* Vrednost okolice smo izracumali tako da natančno loči koliko celic posamezne vrste je v njej.
-            Vsakemu od možnih stanj celic odgovarja eno desetiško mesto v vrednosti_okolice,
-            desetiška mesta so napisana ravno v obratni smeri kot so v seznamu stanj (avtomat.stanja).
-            Problem nastane, če je okolica večja od 10. Potem se lahko 10 v izrazu zamenja s max številom celic v okolici.
-            Potem je vrednost_okolice treba pretvoriti iz desetiškega v tisti sistem, če želimo lažje prebrati, koliko celic v posameznem stanju imamo. *)
-        done
-      done;
-      int_of_float !vrednost_okolice
-    in
+  (* let vrni = Array.make v (Array.make s (List.hd avtomat.stanja)) *)
   let vrni = Array.copy avtomat.grid
+  and okolica_od n m =
+    let vrednost_okolice = ref 0. in
+    for i = 0 to v-1 do
+      for j = 0 to s-1 do
+        if (avtomat.def_okolice (n,m,i,j,v,s)) = true 
+          then vrednost_okolice :=  (10.**(float_of_int(index avtomat.stanja avtomat.grid.(i).(j)))) +. !vrednost_okolice
+        (* Vrednost okolice smo izracumali tako da natančno loči koliko celic posamezne vrste je v njej.
+          Vsakemu od možnih stanj celic odgovarja eno desetiško mesto v vrednosti_okolice,
+          desetiška mesta so napisana ravno v obratni smeri kot so v seznamu stanj (avtomat.stanja).
+          Problem nastane, če je okolica večja od 10. Potem se lahko 10 v izrazu zamenja s max številom celic v okolici.
+          Potem je vrednost_okolice treba pretvoriti iz desetiškega v tisti sistem, če želimo lažje prebrati, koliko celic v posameznem stanju imamo. *)
+      done;
+    done;
+    int_of_float !vrednost_okolice
   in
-  for i = 0 to v do
-    for j = 0 to s do
+  for i = 0 to v-1 do
+    let vrst = Array.copy vrni.(i) in
+    for j = 0 to s-1 do
+      print_int (okolica_od i j);
+      print_endline "to je bla okolica";
+      print_char (Stanje.v_char avtomat.grid.(i).(j));
+      print_endline "";
       match
       List.find_opt
-        (fun (okolica', stanjeZ, _stanje) -> okolica' = (okolica_od i j) && stanjeZ = avtomat.grid.(i).(j))
+        (fun (okolica', stanjeZ, _stanje) -> (okolica' = (okolica_od i j) && stanjeZ = avtomat.grid.(i).(j)))
         avtomat.prehodi
       with
       | None -> ()
-      | Some (_, _, stanje) -> (vrni.(i).(j)<- stanje)
-    done
+      | Some (_, _, stanje) -> (vrst.(j) <- stanje);print_char (Stanje.v_char vrni.(i).(j)); print_char (Stanje.v_char stanje);print_endline"";
+    done;
+    (vrni.(i) <- vrst)
   done;
   {avtomat with grid = vrni}
 
@@ -89,18 +95,21 @@ let metricna r m =
    tukaj potrebujemo saj lahko tako mrežo spremenimo v torus. *)
 let metricna_torus r m =
   fun (x1, y1, x2, y2, v, s) -> 
-    (float_of_int (min (abs x1-x2) (abs v-x1+x2)))**m +. (float_of_int (min (abs y1-y2) (abs s-y1+y2)))**m <= r**m
+    (float_of_int (min (abs x1-x2) (v - abs x1-x2)))**m +. (float_of_int (min (abs y1-y2) (s - abs y1-y2)))**m <= r**m
 
 (* Še primer "obroča" v metriki m (zaprte okolice z r1 brez zaprte okolice z r0). *)
 let metricni_obroc_torus r0 r1 m =
   fun (x1, y1, x2, y2, v, s) -> 
-    let d = (float_of_int (min (abs x1-x2) (abs v-x1+x2)))**m +. (float_of_int (min (abs y1-y2) (abs s-y1+y2)))**m in
+    let d = (float_of_int (min (abs x1-x2) (v - abs x1-x2)))**m +. (float_of_int (min (abs y1-y2) (s - abs y1-y2)))**m in
     d <= r1**m && r0**m < d
 
 (* Ena od najbolj osnovnih okolic - Moorova okolica, ki jo recimo uporablja eden
    od najbolj znanih primerov celičnih avtomatov - Conway's game of life. *)
 let moore =
-  metricni_obroc_torus 0. 1. infinity
+  fun (x1, y1, x2, y2, v, s) -> (x1 != x2 || y1 != y2) && (max (min (abs(x1-x2)) (v- abs(x1-x2))) (min (abs(y1-y2)) (s- abs(y1-y2)))) <= 1
+
+(* moorova okolica bi bila pravzaprav metricni_obroc_torus 0. 1. infinity vendar je neskončnost
+  očitno problematična za računalnik. *)
 
 let conway =
   let q0 = Stanje.iz_char '0'
