@@ -22,4 +22,11 @@ Imamo vrstico celic, ki jih predstavlja niz številk 0 in 1, 1 predstavlja živo
 V totalističnem avtomatu imamo polje celic v 2D, stanja celic so ponavadi števila, novo stanje celice je določeno z vsoto vrednosti celic v okolici. Če je novo stanje odvisno od vsote vrednosti celic v okolici in od stanja celice je to zunanji totalistični avtomat. Najbolj znan primer je Conway's Game of Life, kjer na to ali bo celica živa ali mrtva vpliva njena vrednost in njena Moorova okolica (8 celic v kvadratu okoli nje). Ta primer je tudi predstavljen v tej projektni nalogi.
 
 ## Navodila za uporabo
-Na voljo sta dva tekstovna vmesnika za omenjena dva tipa celičnih avtomatov. Z ukazom `dune build` v korenskem imeniku ustvarimo datoteki `tekstovniVmesnikEL.exe` in `tekstovniVmesnikOT.exe`, prva je za elementarne celične avtomate, druga pa za zunanje totalistične.
+Na voljo sta dva tekstovna vmesnika za omenjena dva tipa celičnih avtomatov. V ukazni vrstici z ukazom `dune build` v korenskem imeniku ustvarimo datoteki `tekstovniVmesnikEL.exe` in `tekstovniVmesnikOT.exe`, prva je za elementarne celične avtomate, druga pa za zunanje totalistične. Nato pa še z `./tekstovniVmesnikEL.exe` oz. `./tekstovniVmesnikOT.exe` datoteko zaženemo.
+
+## Struktura datotek
+V mapi `definicije` so OCaml datoteke z implementacijo stanja in obeh avtomatov, vsaka od teh datotek ima še svojo `.mli` datoteko.
+
+Zgoraj omenjena primera avtomatov sta definirana v datotekah `avtomat_cel_el.ml` oz. `avtomat_cel_ot` .
+
+Mapi `tekstovniVmesnikEL` in `tekstovniVmesnikOT` pa vsebujeta implementaciji tekstovnega vmesnika za dotičen avtomat.
