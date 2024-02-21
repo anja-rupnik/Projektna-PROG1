@@ -1,5 +1,5 @@
 (executable
- (name tekstovniVmesnik)
+ (name tekstovniVmesnikEL)
  (libraries definicije)
  (promote
   (into ..)
