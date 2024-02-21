@@ -19,7 +19,7 @@ V tej projektni nalogi sta predstavljena avtomata za 1D elementarni celični avt
 Imamo vrstico celic, ki jih predstavlja niz številk 0 in 1, 1 predstavlja živo celico, 0 pa mrtvo celico. Okolica točke je levi sosed, celica sama in desni sosed celice. V tem primeru ločimo celice v okolici glede na pozicijo, tako imamo 8 možnih okolic (binarni zapisi števil 0 - 8). Tako je le 2^8 = 256 različnih elementarnih celičnih avtomatov. Prehodne funkcije za te avtomate lahko torej oštevilčimo 0 do 255, in če število zapišemo binarno po vrsti dobimo v kaj se slika posamezna okolica (111 v 1. števko, 110 v 2., ... 000 v 8. števko).
 
 ### Zunanji totalistični avtomat
+V totalističnem avtomatu imamo polje celic v 2D, stanja celic so ponavadi števila, novo stanje celice je določeno z vsoto vrednosti celic v okolici. Če je novo stanje odvisno od vsote vrednosti celic v okolici in od stanja celice je to zunanji totalistični avtomat. Najbolj znan primer je Conway's Game of Life, kjer na to ali bo celica živa ali mrtva vpliva njena vrednost in njena Moorova okolica (8 celic v kvadratu okoli nje). Ta primer je tudi predstavljen v tej projektni nalogi.
 
-
-
-
+## Navodila za uporabo
+Na voljo sta dva tekstovna vmesnika za omenjena dva tipa celičnih avtomatov. Z ukazom `dune build` v korenskem imeniku ustvarimo datoteki `tekstovniVmesnikEL.exe` in `tekstovniVmesnikOT.exe`, prva je za elementarne celične avtomate, druga pa za zunanje totalistične.
